@@ -1,24 +1,21 @@
 'use strict';
 
 function printReceipt(inputs) {
-  // console.log('Implement the exercise requirements here and rewrite the line of code.');
-  let receiptDict = itemsToReceipt(inputs);
-  let detailedReceiptDict = itemDetailSearcher(receiptDict);
-  // console.log(detailedReceiptDict);
-  // renderReceipt(detailedReceiptDict);
+  let itemIdCountDict = optimiseItemIdList(inputs);
+  let detailedReceiptDict = detailedItemBuilder(itemIdCountDict);
   console.log(renderReceipt(detailedReceiptDict));
 }
 
-function itemsToReceipt(itemIdList) {
-  let optimisedItemIdict = {};
+function optimiseItemIdList(itemIdList) {
+  let optimisedItemIdDict = {};
   itemIdList.forEach(function(itemId) {
     // If itemId exist then add 1 else init with 1
-    optimisedItemIdict[itemId] = (optimisedItemIdict[itemId] || 0) + 1;
+    optimisedItemIdDict[itemId] = (optimisedItemIdDict[itemId] || 0) + 1;
   });
-  return optimisedItemIdict;
+  return optimisedItemIdDict;
 }
 
-function itemDetailSearcher(receiptDict) {
+function detailedItemBuilder(receiptDict) {
   let detailedItemList = [];
 
   Object.keys(receiptDict).forEach(function(itemId) {
@@ -36,29 +33,33 @@ function findItemByBarcode(itemId, quantity) {
 }
 
 function renderReceipt(receipt) {
-  var totalPrice = 0;
+  var subTotalList = [];
   var resultedReceiptString = "***<store earning no money>Receipt ***\n";
 
   receipt.forEach(function(item) {
     let itemObj = JSON.parse(item);
-    let subPrice = calSubPrice(itemObj.price, itemObj.quantity);
-    totalPrice += subPrice;
+    let subTotal = computeSubTotal(itemObj.price, itemObj.quantity);
+    subTotalList.push(subTotal);
     resultedReceiptString += "Name：" + itemObj.name + "，Quantity：" + itemObj.quantity + " ";
     if (itemObj.quantity > 1) {
       resultedReceiptString += itemObj.unit + "s"
     } else {
       resultedReceiptString += itemObj.unit
     }
-    resultedReceiptString += "，Unit：" + itemObj.price.toFixed(2) + " (yuan)，Subtotal：" + subPrice.toFixed(2) + " (yuan)" + "\n";
+    resultedReceiptString += "，Unit：" + itemObj.price.toFixed(2) + " (yuan)，Subtotal：" + subTotal.toFixed(2) + " (yuan)" + "\n";
   });
 
   resultedReceiptString += "----------------------\n";
-  resultedReceiptString += "总计：" + totalPrice.toFixed(2) + " (yuan)\n";
+  resultedReceiptString += "总计：" + computeTotal(subTotalList).toFixed(2) + " (yuan)\n";
   resultedReceiptString += "**********************"
   
   return resultedReceiptString;
 }
 
-function calSubPrice(price, quantity) {
+function computeSubTotal(price, quantity) {
   return price * quantity;
+}
+
+function computeTotal(subTotalList) {
+  return subTotalList.reduce((a,b) => a + b, 0);
 }
